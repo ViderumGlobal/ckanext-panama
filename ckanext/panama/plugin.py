@@ -48,6 +48,7 @@ class PanamaPlugin(plugins.SingletonPlugin, DefaultTranslation):
     plugins.implements(plugins.IRoutes, inherit=True)
     plugins.implements(plugins.ITranslation)
 
+
     # mapping between fluent field and core field
     fluent_core_field_map = [('fluent_title', 'title'),
                              ('fluent_notes', 'notes'),
@@ -87,6 +88,7 @@ class PanamaPlugin(plugins.SingletonPlugin, DefaultTranslation):
         return _fluent_to_core_fields(pkg_dict, self.fluent_core_field_map)
 
 
+
 class PanamaGroupPlugin(plugins.SingletonPlugin):
 
     '''Ensure grp_dict['display_name'] is using the correct language.'''
@@ -98,7 +100,9 @@ class PanamaGroupPlugin(plugins.SingletonPlugin):
                              ('fluent_description', 'description')]
 
     def before_view(self, grp_dict):
-        grp = _fluent_to_core_fields(grp_dict, self.fluent_core_field_map)
+        grp = toolkit.get_action('group_show')(
+            data_dict={'id': grp_dict['id']})
+        grp = _fluent_to_core_fields(grp, self.fluent_core_field_map)
         grp_dict['display_name'] = grp['display_name']
         grp_dict['description'] = grp['description']
 
@@ -146,23 +150,22 @@ class PanamaContactPlugin(plugins.SingletonPlugin):
     plugins.implements(plugins.IRoutes, inherit=True)
     plugins.implements(plugins.IAuthFunctions)
 
-    # IRoutes
+    ## IRoutes
     def before_map(self, map):
 
         # Add controller for KE EMu specimen records
         map.connect('contact_form', '/contact',
-                    controller='ckanext.panama.controllers.\
-                                contact:ContactController',
+                    controller='ckanext.panama.controllers.contact:ContactController',
                     action='form')
 
         # Add AJAX request handler
         map.connect('contact_ajax_submit', '/contact/ajax',
-                    controller='ckanext.panama.controllers.\
-                                contact:ContactController',
+                    controller='ckanext.panama.controllers.contact:ContactController',
                     action='ajax_submit')
 
         return map
 
-    # IAuthFunctions
+    ## IAuthFunctions
     def get_auth_functions(self):
         return {'send_contact': send_contact}
+
